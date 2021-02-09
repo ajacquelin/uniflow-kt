@@ -9,10 +9,10 @@ import io.uniflow.core.flow.data.UIState
 import io.uniflow.core.logger.UniFlowLogger
 import io.uniflow.core.threading.onMain
 
-class LiveDataPublisher(defaultState: UIState, val tag: String) : DataPublisher {
+class LiveDataPublisher<T: UIState>(defaultState: T, val tag: String) : DataPublisher<T> {
 
-    private val _states = MutableLiveData<UIState>()
-    val states: LiveData<UIState> = _states
+    private val _states = MutableLiveData<T>()
+    val states: LiveData<T> = _states
     private val _events = MutableLiveData<Event<UIEvent>>()
     val events: LiveData<Event<UIEvent>> = _events
 
@@ -20,8 +20,8 @@ class LiveDataPublisher(defaultState: UIState, val tag: String) : DataPublisher 
         _states.value = defaultState
     }
 
-    override suspend fun getState(): UIState = _states.value ?: error("No state in LiveData")
-    override suspend fun publishState(state: UIState, pushStateUpdate: Boolean) {
+    override suspend fun getState(): T = _states.value ?: error("No state in LiveData")
+    override suspend fun publishState(state: T, pushStateUpdate: Boolean) {
         onMain(immediate = true) {
             UniFlowLogger.debug("$tag <-- $state")
             _states.value = state
@@ -36,4 +36,4 @@ class LiveDataPublisher(defaultState: UIState, val tag: String) : DataPublisher 
     }
 }
 
-fun liveDataPublisher(defaultState: UIState, tag: String) = LiveDataPublisher(defaultState,tag)
+fun <T: UIState> liveDataPublisher(defaultState: T, tag: String) = LiveDataPublisher(defaultState,tag)

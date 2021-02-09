@@ -15,27 +15,27 @@ import kotlin.reflect.KClass
  *
  * @author Arnaud Giuliani
  */
-class ActionDispatcher(
+class ActionDispatcher<T: UIState>(
         private val coroutineScope: CoroutineScope,
-        private val reducer: ActionReducer,
-        private val runError: suspend (Exception, UIState) -> Unit,
+        private val reducer: ActionReducer<T>,
+        private val runError: suspend (Exception, T) -> Unit,
         val tag: String
 ) {
-    fun dispatchAction(onAction: ActionFunction): Action = dispatchAction(onAction) { error, state -> runError(error, state) }
+    fun dispatchAction(onAction: ActionFunction_T<T>): Action<T> = dispatchAction(onAction, onError = runError)
 
-    fun dispatchAction(onAction: ActionFunction, onError: ActionErrorFunction): Action = Action(onAction, onError).also {
+    fun dispatchAction(onAction: ActionFunction_T<T>, onError: suspend (Exception, T) -> Unit): Action<T> = Action(onAction, onError).also {
         dispatchAction(it)
     }
 
-    fun dispatchAction(action: Action) {
+    fun dispatchAction(action: Action<T>) {
         coroutineScope.launchOnIO {
             UniFlowLogger.debug("$tag - enqueue: $action")
             reducer.enqueueAction(action)
         }
     }
 
-    fun actionOn(kClass: KClass<out UIState>, onAction: ActionFunction): Action = actionOn(kClass, onAction) { error, state -> runError(error, state) }
-    fun actionOn(kClass: KClass<out UIState>, onAction: ActionFunction, onError: ActionErrorFunction): Action = Action(onAction, onError, kClass).also { dispatchAction(it) }
+    fun actionOn(kClass: KClass<out T>, onAction: ActionFunction_T<T>): Action<T> = actionOn(kClass, onAction) { error, state -> runError(error, state) }
+    fun actionOn(kClass: KClass<out T>, onAction: ActionFunction_T<T>, onError: ActionErrorFunction_T<T>): Action<T> = Action(onAction, onError, kClass).also { dispatchAction(it) }
 
     fun close() {
         reducer.close()

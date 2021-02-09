@@ -16,8 +16,8 @@ import kotlinx.coroutines.channels.actor
  *
  * @author Arnaud Giuliani
  */
-class ActionReducer(
-        private val defaultPublisher: () -> DataPublisher,
+class ActionReducer<T: UIState>(
+        private val defaultPublisher: () -> DataPublisher<T>,
         private val coroutineScope: CoroutineScope,
         private val defaultDispatcher: CoroutineDispatcher,
         defaultCapacity: Int = Channel.BUFFERED,
@@ -25,7 +25,7 @@ class ActionReducer(
 ) {
 
     @OptIn(ObsoleteCoroutinesApi::class)
-    private val actor = coroutineScope.actor<Action>(UniFlowDispatcher.dispatcher.default(), capacity = defaultCapacity) {
+    private val actor = coroutineScope.actor<Action<T>>(UniFlowDispatcher.dispatcher.default(), capacity = defaultCapacity) {
         for (action in channel) {
             if (coroutineScope.isActive) {
                 withContext(defaultDispatcher) {
@@ -37,13 +37,13 @@ class ActionReducer(
         }
     }
 
-    suspend fun enqueueAction(action: Action) {
+    suspend fun enqueueAction(action: Action<T>) {
         actor.send(action)
     }
 
-    private suspend fun reduceAction(action: Action) {
+    private suspend fun reduceAction(action: Action<T>) {
         UniFlowLogger.debug("$tag - reduce: $action")
-        val currentState: UIState = defaultPublisher().getState()
+        val currentState = defaultPublisher().getState()
         try {
             action.targetState?.let { targetState ->
                 if (targetState != currentState::class) {

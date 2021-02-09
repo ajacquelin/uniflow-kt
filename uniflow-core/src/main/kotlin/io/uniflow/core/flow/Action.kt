@@ -14,8 +14,8 @@ typealias ActionErrorFunction_T<T> = suspend (Exception, T) -> (Unit)
  *
  * @author Arnaud Giuliani
  */
-class Action(
-        val onSuccess: ActionFunction,
-        val onError: ActionErrorFunction,
+class Action<T>(
+        val onSuccess: ActionFunction_T<T>,
+        val onError: ActionErrorFunction_T<T>,
         val targetState: KClass<out UIState>? = null
 )

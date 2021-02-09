@@ -43,23 +43,23 @@ import kotlinx.coroutines.channels.Channel
  * @param defaultDispatcher The default [CoroutineDispatcher] on which state actions are dispatched.
  * Defaults to [Dispatchers.IO].
  */
-abstract class AndroidDataFlow(
-        defaultState: UIState = UIState.Empty,
+abstract class AndroidDataFlow<T: UIState>(
+        defaultState: T,
         defaultCapacity: Int = Channel.BUFFERED,
         defaultDispatcher: CoroutineDispatcher = UniFlowDispatcher.dispatcher.io()
-) : ViewModel(), DataFlow, DataPublisher {
+) : ViewModel(), DataFlow<T>, DataPublisher<T> {
     override val tag = this.toString()
 
     private val coroutineScope: CoroutineScope = viewModelScope
 
     val defaultDataPublisher = liveDataPublisher(defaultState, "main")
-    override suspend fun publishState(state: UIState, pushStateUpdate: Boolean) = defaultPublisher().publishState(state, pushStateUpdate)
+    override suspend fun publishState(state: T, pushStateUpdate: Boolean) = defaultPublisher().publishState(state, pushStateUpdate)
     override suspend fun publishEvent(event: UIEvent) = defaultPublisher().publishEvent(event)
-    override suspend fun getState(): UIState = defaultPublisher().getState()
-    override fun defaultPublisher(): DataPublisher = defaultDataPublisher
+    override suspend fun getState(): T = defaultPublisher().getState()
+    override fun defaultPublisher(): DataPublisher<T> = defaultDataPublisher
 
     private val actionReducer = ActionReducer(::defaultPublisher, coroutineScope, defaultDispatcher, defaultCapacity, tag)
-    override val actionDispatcher: ActionDispatcher = ActionDispatcher(coroutineScope, actionReducer, ::onError, tag)
+    override val actionDispatcher: ActionDispatcher<T> = ActionDispatcher(coroutineScope, actionReducer, ::onError, tag)
 
     @CallSuper
     override fun onCleared() {

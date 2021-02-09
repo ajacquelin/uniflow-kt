@@ -31,9 +31,9 @@ import io.uniflow.core.logger.UniFlowLogger
 /**
  * Listen incoming states (UIState) on given AndroidDataFlow
  */
-fun LifecycleOwner.onStates(vm: AndroidDataFlow, handleStates: (UIState) -> Unit) {
+fun <T: UIState> LifecycleOwner.onStates(vm: AndroidDataFlow<T>, handleStates: (T) -> Unit) {
     var lastState: UIState? = null
-    vm.dataPublisher.states.observe(this, Observer { state: UIState? ->
+    vm.dataPublisher.states.observe(this, Observer { state: T? ->
         // TODO Extract generic State observer
         state?.let {
             UniFlowLogger.debug("onStates - $this - last state: $lastState")

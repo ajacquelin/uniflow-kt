@@ -31,17 +31,17 @@ import io.uniflow.core.logger.UniFlowLogger
  *
  * @author Arnaud Giuliani
  */
-interface DataFlow {
+interface DataFlow<T: UIState> {
     val tag: String
-    val actionDispatcher: ActionDispatcher
-    fun defaultPublisher(): DataPublisher
-    fun action(onAction: ActionFunction): Action = actionDispatcher.dispatchAction(onAction)
-    fun action(onAction: ActionFunction, onError: ActionErrorFunction): Action = actionDispatcher.dispatchAction(onAction, onError)
+    val actionDispatcher: ActionDispatcher<T>
+    fun defaultPublisher(): DataPublisher<T>
+    fun action(onAction: ActionFunction_T<T>): Action<T> = actionDispatcher.dispatchAction(onAction)
+    fun action(onAction: ActionFunction, onError: ActionErrorFunction): Action<T> = actionDispatcher.dispatchAction(onAction, onError)
     suspend fun onError(error: Exception, currentState: UIState) {
         UniFlowLogger.logError("Uncaught error: $error - ${error.stackTrace}", error)
         throw error
     }
 }
 
-inline fun <reified T : UIState> DataFlow.actionOn(noinline onAction: ActionFunction_T<T>): Action = actionDispatcher.actionOn(T::class, onAction as ActionFunction)
-inline fun <reified T : UIState> DataFlow.actionOn(noinline onAction: ActionFunction_T<T>, noinline onError: ActionErrorFunction_T<T>): Action = actionDispatcher.actionOn(T::class, onAction as ActionFunction, onError as ActionErrorFunction)
+inline fun <reified T : UIState> DataFlow<T>.actionOn(noinline onAction: ActionFunction_T<T>): Action<T> = actionDispatcher.actionOn(T::class, onAction as ActionFunction)
+inline fun <reified T : UIState> DataFlow<T>.actionOn(noinline onAction: ActionFunction_T<T>, noinline onError: ActionErrorFunction_T<T>): Action<T> = actionDispatcher.actionOn(T::class, onAction as ActionFunction, onError as ActionErrorFunction)

@@ -10,11 +10,11 @@ import io.uniflow.core.logger.UniFlowLogger
  * publishState - implementation used by setState
  * getState - get current state
  */
-interface StatePublisher {
-    suspend fun publishState(state: UIState, pushStateUpdate: Boolean = true)
-    suspend fun getState(): UIState
-    suspend fun setState(state: UIState) = publishState(state)
-    suspend fun setState(state: () -> UIState) = publishState(state())
+interface StatePublisher<T: UIState> {
+    suspend fun publishState(state: T, pushStateUpdate: Boolean = true)
+    suspend fun getState(): T
+    suspend fun setState(state: T) = publishState(state)
+    suspend fun setState(state: () -> T) = publishState(state())
 }
 
 /**
@@ -34,8 +34,8 @@ interface EventPublisher {
  * notifyStateUpdate - help notify a data update via event, instead of publishing a state
  * useful when need to notify part data update (like lists ...)
  */
-interface DataPublisher : StatePublisher, EventPublisher {
-    suspend fun notifyStateUpdate(state: UIState, event: UIEvent) {
+interface DataPublisher<T: UIState> : StatePublisher<T>, EventPublisher {
+    suspend fun notifyStateUpdate(state: T, event: UIEvent) {
         publishState(state, pushStateUpdate = false)
         publishEvent(event)
     }
@@ -44,7 +44,7 @@ interface DataPublisher : StatePublisher, EventPublisher {
 /**
  *
  */
-suspend inline fun <reified T : UIState> StatePublisher.getStateOrNull(): T?{
+suspend inline fun <reified T : UIState> StatePublisher<T>.getStateOrNull(): T?{
     val state = getState()
     return if (state is T){
         state as? T

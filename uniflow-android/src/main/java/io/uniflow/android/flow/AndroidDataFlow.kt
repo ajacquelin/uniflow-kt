@@ -42,8 +42,8 @@ import kotlin.reflect.KClass
  * @param defaultDispatcher The default [CoroutineDispatcher] on which state actions are dispatched.
  * Defaults to [Dispatchers.IO].
  */
-abstract class AndroidDataFlow(
-        defaultState: UIState = UIState.Empty,
+abstract class AndroidDataFlow<T : UIState>(
+        defaultState: T,
         defaultCapacity: Int = Channel.BUFFERED,
         defaultDispatcher: CoroutineDispatcher = UniFlowDispatcher.dispatcher.io()
 ) : ViewModel(), DataFlow {
@@ -57,11 +57,11 @@ abstract class AndroidDataFlow(
         get() = ActionDispatcher(coroutineScope, reducer, dataStore, this, tag)
 
     final override fun getCurrentState() = actionDispatcher.getCurrentState()
-    final override fun <T : UIState> getCurrentStateOrNull(stateClass: KClass<T>): T? = actionDispatcher.getCurrentStateOrNull()
+    final override fun getCurrentStateOrNull(stateClass: KClass<T>): T? = actionDispatcher.getCurrentStateOrNull()
     final override fun action(onAction: ActionFunction<UIState>): ActionFlow = actionDispatcher.dispatchAction(onAction)
     final override fun action(onAction: ActionFunction<UIState>, onError: ActionErrorFunction): ActionFlow = actionDispatcher.dispatchAction(onAction, onError)
-    final override fun <T : UIState> actionOn(stateClass: KClass<T>, onAction: ActionFunction<T>): ActionFlow = actionDispatcher.actionOn(stateClass, onAction)
-    final override fun <T : UIState> actionOn(stateClass: KClass<T>, onAction: ActionFunction<T>, onError: ActionErrorFunction): ActionFlow = actionDispatcher.actionOn(stateClass, onAction, onError)
+    final override fun actionOn(stateClass: KClass<T>, onAction: ActionFunction<T>): ActionFlow = actionDispatcher.actionOn(stateClass, onAction)
+    final override fun actionOn(stateClass: KClass<T>, onAction: ActionFunction<T>, onError: ActionErrorFunction): ActionFlow = actionDispatcher.actionOn(stateClass, onAction, onError)
 
     @CallSuper
     override fun onCleared() {

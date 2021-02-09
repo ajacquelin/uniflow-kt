@@ -31,16 +31,16 @@ import io.uniflow.core.logger.UniFlowLogger
 /**
  * Listen incoming states (UIState) on given AndroidDataFlow
  */
-fun LifecycleOwner.onStates(vm: AndroidDataFlow, handleStates: (UIState) -> Unit) {
+fun <T: UIState> LifecycleOwner.onStates(vm: AndroidDataFlow<T>, handleStates: (T) -> Unit) {
     vm.defaultDataPublisher.onStates(this, handleStates)
 }
 
 /**
  * Listen incoming states (UIState) on given AndroidDataFlow
  */
-fun LiveDataPublisher.onStates(owner: LifecycleOwner, handleStates: (UIState) -> Unit) {
-    var lastState: UIState? = null
-    states.observe(owner, Observer { state: UIState? ->
+fun <T: UIState> LiveDataPublisher<T>.onStates(owner: LifecycleOwner, handleStates: (T) -> Unit) {
+    var lastState: T? = null
+    states.observe(owner, Observer { state: T? ->
         // TODO Extract generic State observer
         state?.let {
             UniFlowLogger.debug("onStates - $this - last state: $lastState")
@@ -55,7 +55,7 @@ fun LiveDataPublisher.onStates(owner: LifecycleOwner, handleStates: (UIState) ->
     })
 }
 
-fun LiveDataPublisher.onEvents(owner: LifecycleOwner, handleEvents: (UIEvent) -> Unit) {
+fun LiveDataPublisher<*>.onEvents(owner: LifecycleOwner, handleEvents: (UIEvent) -> Unit) {
     val consumer = EventConsumer(consumerId)
     events.observe(owner, Observer { event ->
         // TODO Extract generic Event observer
@@ -71,7 +71,7 @@ fun LiveDataPublisher.onEvents(owner: LifecycleOwner, handleEvents: (UIEvent) ->
 /**
  * Listen incoming events (Event<UIEvent>) on given AndroidDataFlow
  */
-fun LifecycleOwner.onEvents(vm: AndroidDataFlow, handleEvents: (UIEvent) -> Unit) {
+fun <T: UIState> LifecycleOwner.onEvents(vm: AndroidDataFlow<T>, handleEvents: (UIEvent) -> Unit) {
     vm.defaultDataPublisher.onEvents(this, handleEvents)
 }
 
